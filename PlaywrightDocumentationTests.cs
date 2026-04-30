@@ -1,6 +1,6 @@
 using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
-using System.Text.RegularExpressions;
+using PlaywrightTests.Pages;
 
 namespace PlaywrightTests;
 
@@ -8,10 +8,15 @@ namespace PlaywrightTests;
 [TestFixture]
 public class PlaywrightDocumentationTests : PageTest
 {
+    private HomePage _homePage;
+    private SearchPage _searchPage;
+
     [SetUp]
     public async Task Setup()
     {
-        await Page.GotoAsync("https://playwright.dev");
+        _homePage = new HomePage(Page);
+        _searchPage = new SearchPage(Page);
+        await _homePage.NavigateToHomeAsync();
     }
 
     [Test]
@@ -19,54 +24,22 @@ public class PlaywrightDocumentationTests : PageTest
     {
         try
         {
-            // Verify we're on Playwright documentation
-            await Expect(Page).ToHaveTitleAsync(new Regex("Playwright"));
-            Console.WriteLine("✓ Successfully loaded Playwright documentation");
+            Console.WriteLine("📖 Testing navigation to Frames documentation...");
+            await _homePage.VerifyHomepageTitleAsync("Playwright");
 
-            // Open search and type "Frames"
-            var searchButton = Page.GetByRole(AriaRole.Button, new() { Name = "Search" });
-            await searchButton.ClickAsync();
-            Console.WriteLine("✓ Clicked search button");
+            await _searchPage.OpenSearchAsync();
+            await _searchPage.SearchForAsync("Frames");
+            await _searchPage.ClickSearchResultAsync("Frames");
 
-            // Wait for search dialog to appear
-            await Page.WaitForTimeoutAsync(300);
+            var framesPage = new FramesPage(Page);
+            await framesPage.VerifyFramesPageAsync();
 
-            // Type "Frames" in the search field
-            var searchInput = Page.GetByPlaceholder("Search");
-            await searchInput.FillAsync("Frames");
-            Console.WriteLine("✓ Typed 'Frames' in search");
-
-            // Wait for search results
-            await Page.WaitForTimeoutAsync(500);
-
-            // Click on the Frames result - it should be a link in the results
-            var framesLink = Page.Locator("a", new() { Has = Page.Locator("text=Frames") }).First;
-            await framesLink.ClickAsync();
-            Console.WriteLine("✓ Clicked on Frames search result");
-
-            // Wait for page to load
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            // Verify that the page header reads "Frames"
-            var framesHeader = Page.GetByRole(AriaRole.Heading, new() { Name = "Frames" });
-            await Expect(framesHeader).ToBeVisibleAsync();
-            Console.WriteLine("✓ Verified page header reads 'Frames'");
-
-            // Additional verification: Check the page URL contains "frames"
-            var pageUrl = Page.Url;
-            if (pageUrl.Contains("frames"))
-            {
-                Console.WriteLine($"✓ Page URL confirmed: {pageUrl}");
-                Console.WriteLine("\n✅ TEST PASSED: Successfully navigated to Frames documentation");
-            }
-            else
-            {
-                throw new Exception($"Page URL does not contain 'frames'. Got: {pageUrl}");
-            }
+            Console.WriteLine($"✓ Page URL confirmed: {framesPage.PageUrl}");
+            Console.WriteLine("✅ TEST PASSED: Successfully navigated to Frames documentation");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"\n❌ TEST FAILED: {ex.Message}");
+            Console.WriteLine($"❌ TEST FAILED: {ex.Message}");
             throw;
         }
     }
@@ -78,24 +51,12 @@ public class PlaywrightDocumentationTests : PageTest
         {
             Console.WriteLine("📖 Testing search for Installation documentation...");
 
-            // Click search button
-            var searchButton = Page.GetByRole(AriaRole.Button, new() { Name = "Search" });
-            await searchButton.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
+            await _searchPage.OpenSearchAsync();
+            await _searchPage.SearchForAsync("Installation");
+            await _searchPage.ClickSearchResultAsync("Installation");
 
-            // Search for "Installation"
-            var searchInput = Page.GetByPlaceholder("Search");
-            await searchInput.FillAsync("Installation");
-            await Page.WaitForTimeoutAsync(500);
-
-            // Click Installation result
-            var installationLink = Page.Locator("a", new() { Has = Page.Locator("text=Installation") }).First;
-            await installationLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            // Verify page contains Installation heading
-            var heading = Page.GetByRole(AriaRole.Heading, new() { Name = "Installation" });
-            await Expect(heading).ToBeVisibleAsync();
+            var installationPage = new InstallationPage(Page);
+            await installationPage.VerifyInstallationPageAsync();
 
             Console.WriteLine("✅ Installation documentation search passed");
         }
@@ -107,43 +68,33 @@ public class PlaywrightDocumentationTests : PageTest
     }
 
     [Test]
-    public async Task VerifyDocumentationSidebar()
+    public async Task VerifyDocumentationNavigation()
     {
         try
         {
             Console.WriteLine("📖 Testing documentation navigation links...");
 
-            // Use search to verify key documentation pages exist
-            var searchButton = Page.GetByRole(AriaRole.Button, new() { Name = "Search" });
+            // Test Getting Started exists
+            await _searchPage.OpenSearchAsync();
+            await _searchPage.SearchForAsync("Getting Started");
+            var gettingStartedCount = await _searchPage.GetSearchResultCountAsync("Getting started");
             
-            // Test 1: Search for Getting Started
-            await searchButton.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
-            var searchInput = Page.GetByPlaceholder("Search");
-            await searchInput.FillAsync("Getting Started");
-            await Page.WaitForTimeoutAsync(300);
-            
-            var gettingStartedResults = await Page.Locator("a").Filter(new() { HasText = "Getting started" }).CountAsync();
-            if (gettingStartedResults > 0)
+            if (gettingStartedCount > 0)
             {
                 Console.WriteLine("✓ Getting started documentation exists");
             }
+
+            // Test Installation exists
+            await _searchPage.ClearSearchAsync();
+            await _searchPage.SearchForAsync("Installation");
+            var installationCount = await _searchPage.GetSearchResultCountAsync("Installation");
             
-            // Clear and search for another doc
-            await searchInput.ClearAsync();
-            await searchInput.FillAsync("Installation");
-            await Page.WaitForTimeoutAsync(300);
-            
-            var installationResults = await Page.Locator("a").Filter(new() { HasText = "Installation" }).CountAsync();
-            if (installationResults > 0)
+            if (installationCount > 0)
             {
                 Console.WriteLine("✓ Installation documentation exists");
             }
 
-            // Close search
-            await Page.Keyboard.PressAsync("Escape");
-            await Page.WaitForTimeoutAsync(300);
-
+            await _searchPage.CloseSearchAsync();
             Console.WriteLine("✅ Documentation navigation verified");
         }
         catch (Exception ex)
@@ -160,21 +111,10 @@ public class PlaywrightDocumentationTests : PageTest
         {
             Console.WriteLine("📖 Testing navigation to Introduction page...");
 
-            // Search for Intro instead of clicking sidebar
-            var searchButton = Page.GetByRole(AriaRole.Button, new() { Name = "Search" });
-            await searchButton.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
+            await _searchPage.OpenSearchAsync();
+            await _searchPage.SearchForAsync("Intro");
+            await _searchPage.ClickSearchResultAsync("Intro");
 
-            var searchInput = Page.GetByPlaceholder("Search");
-            await searchInput.FillAsync("Intro");
-            await Page.WaitForTimeoutAsync(500);
-
-            // Click on intro result
-            var introLink = Page.Locator("a", new() { Has = Page.Locator("text=Intro") }).First;
-            await introLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            // Verify page loaded
             var url = Page.Url;
             if (url.Contains("intro"))
             {
@@ -200,35 +140,23 @@ public class PlaywrightDocumentationTests : PageTest
         {
             Console.WriteLine("📖 Testing search for BrowserContext documentation...");
 
-            // Click search button
-            var searchButton = Page.GetByRole(AriaRole.Button, new() { Name = "Search" });
-            await searchButton.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
+            await _searchPage.OpenSearchAsync();
+            await _searchPage.SearchForAsync("BrowserContext");
 
-            // Search for "BrowserContext"
-            var searchInput = Page.GetByPlaceholder("Search");
-            await searchInput.FillAsync("BrowserContext");
-            await Page.WaitForTimeoutAsync(500);
-
-            // Check if results appear
-            var results = Page.Locator("a").Filter(new() { HasText = "BrowserContext" });
-            var resultCount = await results.CountAsync();
-
+            var resultCount = await _searchPage.GetSearchResultCountAsync("BrowserContext");
             if (resultCount > 0)
             {
                 Console.WriteLine($"✓ Found {resultCount} BrowserContext result(s)");
 
-                // Click first result
-                await results.First.ClickAsync();
-                await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                var result = await _searchPage.GetSearchResultAsync("BrowserContext");
+                await result.First.ClickAsync();
+                await _homePage.WaitForNavigationAsync();
 
-                // Verify we navigated
-                var url = Page.Url;
-                if (url.Contains("browser") || url.Contains("api"))
-                {
-                    Console.WriteLine($"✓ Navigated to: {url}");
-                    Console.WriteLine("✅ BrowserContext search successful");
-                }
+                var browserContextPage = new BrowserContextPage(Page);
+                await browserContextPage.VerifyBrowserContextPageAsync();
+
+                Console.WriteLine($"✓ Navigated to: {browserContextPage.PageUrl}");
+                Console.WriteLine("✅ BrowserContext search successful");
             }
             else
             {
@@ -249,7 +177,7 @@ public class PlaywrightDocumentationTests : PageTest
         {
             Console.WriteLine("📖 Testing homepage title...");
 
-            var title = await Page.TitleAsync();
+            var title = await _homePage.GetPageTitleAsync();
             if (title.Contains("Playwright"))
             {
                 Console.WriteLine($"✓ Page title: {title}");
@@ -274,14 +202,11 @@ public class PlaywrightDocumentationTests : PageTest
         {
             Console.WriteLine("📖 Testing Get Started link navigation...");
 
-            // Click Get Started link
-            var getStartedLink = Page.GetByRole(AriaRole.Link).Filter(new() { HasText = "Get Started" }).First;
-            await getStartedLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await _homePage.ClickGetStartedLinkAsync();
 
-            // Verify page contains installation or getting started content
-            var heading = Page.GetByRole(AriaRole.Heading).Filter(new() { HasText = "Installation" });
-            await Expect(heading.First).ToBeVisibleAsync();
+            var installationPage = new InstallationPage(Page);
+            await installationPage.VerifyInstallationPageAsync();
+
             Console.WriteLine("✓ Successfully navigated from Get Started link");
             Console.WriteLine("✅ Get Started link test passed");
         }
@@ -299,32 +224,15 @@ public class PlaywrightDocumentationTests : PageTest
         {
             Console.WriteLine("📖 Testing search for Locators documentation...");
 
-            // Click search button
-            var searchButton = Page.GetByRole(AriaRole.Button, new() { Name = "Search" });
-            await searchButton.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
+            await _searchPage.OpenSearchAsync();
+            await _searchPage.SearchForAsync("Locators");
+            await _searchPage.ClickSearchResultAsync("Locators");
 
-            // Search for "Locators"
-            var searchInput = Page.GetByPlaceholder("Search");
-            await searchInput.FillAsync("Locators");
-            await Page.WaitForTimeoutAsync(500);
+            var locatorsPage = new LocatorsPage(Page);
+            await locatorsPage.VerifyLocatorsPageAsync();
 
-            // Click Locators result
-            var locatorsLink = Page.Locator("a", new() { Has = Page.Locator("text=Locators") }).First;
-            await locatorsLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            // Verify Locators content
-            var content = await Page.ContentAsync();
-            if (content.Contains("Locator") || Page.Url.Contains("locator"))
-            {
-                Console.WriteLine("✓ Successfully navigated to Locators documentation");
-                Console.WriteLine("✅ Locators search test passed");
-            }
-            else
-            {
-                throw new Exception("Failed to navigate to Locators page");
-            }
+            Console.WriteLine("✓ Successfully navigated to Locators documentation");
+            Console.WriteLine("✅ Locators search test passed");
         }
         catch (Exception ex)
         {
@@ -341,42 +249,34 @@ public class PlaywrightDocumentationTests : PageTest
             Console.WriteLine("📖 Testing multiple navigation paths...");
 
             // Test 1: Navigate to Installation via search
-            var searchButton = Page.GetByRole(AriaRole.Button, new() { Name = "Search" });
-            await searchButton.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
-            
-            var searchInput = Page.GetByPlaceholder("Search");
-            await searchInput.FillAsync("Installation");
-            await Page.WaitForTimeoutAsync(500);
-            
-            var installLink = Page.Locator("a", new() { Has = Page.Locator("text=Installation") }).First;
-            await installLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await _searchPage.OpenSearchAsync();
+            await _searchPage.SearchForAsync("Installation");
+            await _searchPage.ClickSearchResultAsync("Installation");
+
+            var installationPage = new InstallationPage(Page);
+            await installationPage.VerifyInstallationPageAsync();
             Console.WriteLine("✓ Navigated to Installation");
 
             // Go back to home
-            await Page.GoBackAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await _homePage.GoBackAsync();
+            await _homePage.WaitForNavigationAsync();
 
             // Test 2: Navigate to Frames via search
-            await searchButton.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
-            await searchInput.ClearAsync();
-            await searchInput.FillAsync("Frames");
-            await Page.WaitForTimeoutAsync(500);
-            
-            var framesLink = Page.Locator("a", new() { Has = Page.Locator("text=Frames") }).First;
-            await framesLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await _searchPage.OpenSearchAsync();
+            await _searchPage.ClearSearchAsync();
+            await _searchPage.SearchForAsync("Frames");
+            await _searchPage.ClickSearchResultAsync("Frames");
+
+            var framesPage = new FramesPage(Page);
+            await framesPage.VerifyFramesPageAsync();
             Console.WriteLine("✓ Navigated to Frames");
 
             // Go back to home
-            await Page.GoBackAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await _homePage.GoBackAsync();
+            await _homePage.WaitForNavigationAsync();
 
             // Test 3: Search functionality still accessible
-            var searchButton2 = Page.GetByRole(AriaRole.Button, new() { Name = "Search" });
-            await searchButton2.ClickAsync();
+            await _searchPage.OpenSearchAsync();
             Console.WriteLine("✓ Search functionality accessible");
 
             Console.WriteLine("✅ Multiple navigation paths test passed");
