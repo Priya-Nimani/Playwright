@@ -14,6 +14,7 @@ jobs:
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
+        cache: true
     - name: Build & Install
       run: dotnet build
     - name: Ensure browsers are installed
