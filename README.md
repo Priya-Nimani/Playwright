@@ -72,6 +72,55 @@ PlaywrightTests/
 ✅ **Robust Locators** - Specific and non-brittle element selectors  
 ✅ **Detailed Logging** - Console output for test progress and debugging  
 ✅ **Error Handling** - Explicit error messages for failures  
+✅ **Automatic Failure Capture** - Screenshots and HTML snapshots on test failures  
+
+## Test Artifacts & Failure Diagnostics
+
+When tests fail, the framework automatically captures comprehensive diagnostic artifacts:
+
+### Automatic Artifact Capture
+- **Playwright Trace** - Complete trace recording (`.zip` file with screenshots, DOM snapshots, network activity, console logs)
+- **Screenshots** - Full-page PNG screenshots on test failure
+- **Page HTML** - HTML content of the failed page for DOM inspection
+- **Diagnostics** - Current URL and page title logged to console
+- **Auto-Directory Creation** - Artifacts automatically saved to `test-artifacts/` directory
+- **Timestamped Files** - Unique filenames prevent overwriting (format: `{TestName}_{timestamp}.{ext}`)
+
+### Access Captured Artifacts
+Artifacts are automatically captured in the `test-artifacts/` directory:
+```
+test-artifacts/
+├── TestName_failure_20240120_143025.zip     # Playwright trace (viewable in Inspector)
+├── TestName_failure_20240120_143025.png     # Screenshot
+└── TestName_failure_20240120_143025.html    # HTML snapshot
+```
+
+### Viewing Trace Files
+Trace files can be viewed using Playwright Inspector:
+```bash
+npx playwright show-trace test-artifacts/TestName_failure_20240120_143025.zip
+```
+
+Or via Playwright's online trace viewer: https://trace.playwright.dev
+
+### How It Works
+1. `BasePlaywrightTest` automatically initializes `TestArtifactCapture` in setup
+2. Trace recording starts automatically with `StartTraceAsync()` 
+3. When a test fails, the `TearDown` method captures:
+   - Trace (stopped and saved)
+   - Screenshot
+   - HTML snapshot
+   - Page diagnostics
+4. Console output confirms artifact capture with indicators (🔍, 📸, 📄)
+5. Artifacts are available for review immediately after test completion
+
+### Implementation Details
+The artifact capture system is fully integrated into the base test class:
+- All test classes inherit from `BasePlaywrightTest`
+- Trace recording runs for every test automatically
+- `TearDown` method checks test failure status and captures if needed
+- `TestArtifactCapture` utility handles file operations, tracing, and naming
+- No manual configuration required - works automatically with rich diagnostics
 
 ## Running Tests
 
@@ -119,18 +168,22 @@ All tests use specific, robust locators to avoid strict mode violations:
 
 ## Future Enhancements
 
-- [ ] Add screenshot capture on test failures
 - [ ] Implement data-driven testing for multiple keywords
 - [ ] Add performance testing
 - [ ] Extend tests to other Playwright documentation sections
 - [ ] Add CI/CD integration
+- [ ] Enable video recording during test execution
 
 ## Notes
 
+- All test classes inherit from `BasePlaywrightTest` for automatic failure capture and trace recording
+- Trace recording starts automatically for every test - includes screenshots, DOM snapshots, network activity
 - Tests use `.First` property to select first matching element when multiple exist
 - Navigation waits for `LoadState.NetworkIdle` to ensure page fully loads
 - Search results handled with timeout for dynamic content
 - Console logging provides detailed test progress information
+- Artifacts are captured automatically on failure - no manual code needed in test classes
+- Trace files are captured in `.zip` format and can be viewed with `npx playwright show-trace`
 
 ## License
 

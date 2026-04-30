@@ -7,13 +7,14 @@ namespace PlaywrightTests;
 
 [Parallelizable(ParallelScope.Self)]
 [TestFixture]
-public class Tests : PageTest
+public class Tests : BasePlaywrightTest
 {
     private HomePage _homePage;
 
     [SetUp]
     public async Task Setup()
     {
+        await BaseSetUp();
         _homePage = new HomePage(Page);
         await _homePage.NavigateToHomeAsync();
     }
