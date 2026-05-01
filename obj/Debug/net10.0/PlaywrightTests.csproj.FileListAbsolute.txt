@@ -629,3 +629,4 @@ C:\Users\priya\projects\PlaywrightTests\obj\Debug\net10.0\refint\PlaywrightTests
 C:\Users\priya\projects\PlaywrightTests\obj\Debug\net10.0\PlaywrightTests.pdb
 C:\Users\priya\projects\PlaywrightTests\obj\Debug\net10.0\PlaywrightTests.genruntimeconfig.cache
 C:\Users\priya\projects\PlaywrightTests\obj\Debug\net10.0\ref\PlaywrightTests.dll
+C:\Users\priya\projects\PlaywrightTests\obj\Debug\net10.0\PlaywrightTests.sourcelink.json
