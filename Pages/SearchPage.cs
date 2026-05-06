@@ -17,13 +17,23 @@ public class SearchPage : BasePage
     public async Task OpenSearchAsync()
     {
         await SearchButton.ClickAsync();
-        await WaitForTimeoutAsync(300);
+        await SearchInput.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 5000
+        });
     }
 
     public async Task SearchForAsync(string keyword)
     {
         await SearchInput.FillAsync(keyword);
-        await WaitForTimeoutAsync(500);
+
+        var searchResult = await GetSearchResultAsync(keyword);
+        await searchResult.First.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 5000
+        });
     }
 
     public async Task ClearSearchAsync()
@@ -52,6 +62,10 @@ public class SearchPage : BasePage
     public async Task CloseSearchAsync()
     {
         await Page.Keyboard.PressAsync("Escape");
-        await WaitForTimeoutAsync(300);
+        await SearchInput.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Hidden,
+            Timeout = 5000
+        });
     }
 }

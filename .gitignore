@@ -1,0 +1,14 @@
+# Visual Studio / .NET
+bin/
+obj/
+*.user
+*.suo
+*.vsp
+*.vs/
+
+# Playwright and test artifacts
+test-artifacts/
+
+# IDE folders
+.vscode/
+.idea/

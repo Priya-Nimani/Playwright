@@ -64,6 +64,10 @@
               "target": "Package",
               "version": "[5.0.0, )"
             },
+            "PasswordManager": {
+              "target": "Package",
+              "version": "[1.0.2, )"
+            },
             "coverlet.collector": {
               "target": "Package",
               "version": "[6.0.4, )"
