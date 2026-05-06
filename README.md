@@ -1,5 +1,7 @@
 # Playwright Tests - Playwright Documentation
 
+[![Playwright Tests](https://github.com/Priya-Nimani/Playwright/actions/workflows/playwright.yml/badge.svg)](https://github.com/Priya-Nimani/Playwright/actions/workflows/playwright.yml)
+
 Comprehensive automated test suite for Playwright documentation using Page Object Model (POM) pattern with NUnit and C#.
 
 ## Overview
@@ -38,8 +40,9 @@ Tests are organized using the Page Object Model pattern for improved maintainabi
 #### Verification Tests
 - **VerifyDocumentationNavigation** - Verify key documentation pages exist
 - **VerifyPageTitleOnHomepage** - Verify homepage title contains "Playwright"
+- **VerifyHomepagePerformanceMetrics** - Capture homepage load performance metrics
 
-**Total: 12 Tests**
+**Total: 13 Tests**
 - ✅ All tests passing
 - Average duration: ~32 seconds
 
@@ -92,7 +95,8 @@ Artifacts are automatically captured in the `test-artifacts/` directory:
 test-artifacts/
 ├── TestName_failure_20240120_143025.zip     # Playwright trace (viewable in Inspector)
 ├── TestName_failure_20240120_143025.png     # Screenshot
-└── TestName_failure_20240120_143025.html    # HTML snapshot
+├── TestName_failure_20240120_143025.html    # HTML snapshot
+└── VerifyHomepagePerformanceMetrics_homepage_performance_20240120_143025.json # Performance metrics report
 ```
 
 ### Viewing Trace Files
@@ -143,6 +147,20 @@ dotnet test --filter "NavigateToFramesDocumentation"
 ```bash
 dotnet build
 ```
+
+## Continuous Integration
+
+This repository is configured to run on GitHub Actions using the workflow in `.github/workflows/playwright.yml`.
+
+### CI behavior
+- Runs on every push and pull request across all branches
+- Uses `.NET 10.0` and restores dependencies before building
+- Installs Playwright browsers before executing tests
+- Uploads `test-artifacts/**` and `TestResults/**` after every run for failure diagnostics
+
+### How to use
+Push your branch or open a pull request and the workflow will execute automatically.
+
 
 ## Test Locators
 

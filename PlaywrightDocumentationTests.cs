@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
 using PlaywrightTests.Pages;
+using System.Text.Json;
 
 namespace PlaywrightTests;
 
@@ -192,6 +193,69 @@ public class PlaywrightDocumentationTests : BasePlaywrightTest
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Title verification failed: {ex.Message}");
+            throw;
+        }
+    }
+
+    [Test]
+    public async Task VerifyHomepagePerformanceMetrics()
+    {
+        try
+        {
+            Console.WriteLine("🚀 Testing homepage performance metrics...");
+
+            await _homePage.NavigateToHomeAsync();
+
+            var metricsJson = await Page.EvaluateAsync<string>(@"() => {
+                const nav = performance.getEntriesByType('navigation')[0];
+                return JSON.stringify({
+                    domContentLoaded: nav.domContentLoadedEventEnd,
+                    load: nav.loadEventEnd,
+                    responseEnd: nav.responseEnd,
+                    domInteractive: nav.domInteractive
+                });
+            }");
+
+            var metrics = JsonSerializer.Deserialize<Dictionary<string, double>>(metricsJson ?? string.Empty);
+            if (metrics == null || metrics.Count == 0)
+            {
+                throw new Exception("Performance metrics were not available.");
+            }
+
+            var domContentLoaded = metrics["domContentLoaded"];
+            var loadTime = metrics["load"];
+            var responseEnd = metrics["responseEnd"];
+            var domInteractive = metrics["domInteractive"];
+
+            var reportObject = new Dictionary<string, object>
+            {
+                ["testName"] = nameof(VerifyHomepagePerformanceMetrics),
+                ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                ["url"] = Page.Url,
+                ["metrics"] = new Dictionary<string, object>
+                {
+                    ["domContentLoaded"] = domContentLoaded,
+                    ["load"] = loadTime,
+                    ["responseEnd"] = responseEnd,
+                    ["domInteractive"] = domInteractive
+                }
+            };
+
+            var reportJson = JsonSerializer.Serialize(reportObject, new JsonSerializerOptions { WriteIndented = true });
+            await ArtifactCapture.SaveReportAsync(reportJson, "homepage_performance", "json");
+
+            Console.WriteLine($"✓ Metrics captured: DOMContentLoaded={domContentLoaded}ms, Load={loadTime}ms, ResponseEnd={responseEnd}ms, DomInteractive={domInteractive}ms");
+
+            if (loadTime <= 0)
+            {
+                throw new Exception($"Invalid load time: {loadTime}");
+            }
+
+            Console.WriteLine("✅ Homepage performance metrics test passed");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Homepage performance test failed: {ex.Message}");
             throw;
         }
     }

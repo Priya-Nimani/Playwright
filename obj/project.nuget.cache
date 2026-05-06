@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "bK20M4+5wkQ=",
+  "dgSpecHash": "4JSepbEitbQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\priya\\projects\\PlaywrightTests\\PlaywrightTests.csproj",
   "expectedPackageFiles": [
@@ -23,6 +23,7 @@
     "C:\\Users\\priya\\.nuget\\packages\\nunit\\4.3.2\\nunit.4.3.2.nupkg.sha512",
     "C:\\Users\\priya\\.nuget\\packages\\nunit.analyzers\\4.7.0\\nunit.analyzers.4.7.0.nupkg.sha512",
     "C:\\Users\\priya\\.nuget\\packages\\nunit3testadapter\\5.0.0\\nunit3testadapter.5.0.0.nupkg.sha512",
+    "C:\\Users\\priya\\.nuget\\packages\\passwordmanager\\1.0.2\\passwordmanager.1.0.2.nupkg.sha512",
     "C:\\Users\\priya\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512"
   ],
   "logs": []

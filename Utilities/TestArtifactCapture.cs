@@ -96,6 +96,27 @@ public class TestArtifactCapture
     }
 
     /// <summary>
+    /// Save an arbitrary text report to the artifacts folder
+    /// </summary>
+    public async Task SaveReportAsync(string content, string suffix, string extension = "txt")
+    {
+        try
+        {
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-fff");
+            var filename = string.IsNullOrEmpty(extension)
+                ? $"{_testName}_{suffix}_{timestamp}"
+                : $"{_testName}_{suffix}_{timestamp}.{extension}";
+            var filepath = Path.Combine(_artifactsDirectory, filename);
+            await File.WriteAllTextAsync(filepath, content);
+            Console.WriteLine($"📝 Report saved: {filepath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Failed to save report: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Capture and stop Playwright trace recording
     /// </summary>
     public async Task CaptureTraceAsync(string suffix = "failure")

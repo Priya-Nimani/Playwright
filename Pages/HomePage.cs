@@ -23,7 +23,13 @@ public class HomePage : BasePage
     public async Task ClickSearchButtonAsync()
     {
         await SearchButton.ClickAsync();
-        await WaitForTimeoutAsync(300);
+
+        var searchInput = Page.GetByPlaceholder("Search");
+        await searchInput.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 5000
+        });
     }
 
     public async Task ClickGetStartedLinkAsync()
